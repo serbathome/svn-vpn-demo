@@ -14,42 +14,42 @@ VPN Client (172.16.0.0/24)
     │  OpenVPN / Entra ID auth
     ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  vnet-dmz  (10.1.0.0/16)                                       │
+│  vnet-dmz  (10.1.0.0/16)                                        │
 │                                                                 │
 │  ┌──────────────────────┐                                       │
-│  │ VPN Gateway (vpng-dmz)│  GatewaySubnet 10.1.0.0/27          │
+│  │ VPN Gateway (vpng-dmz)│  GatewaySubnet 10.1.0.0/27           │
 │  └──────────┬───────────┘                                       │
 │             │ private IP                                        │
 │             ▼                                                   │
 │  ┌──────────────────────────────────┐                           │
-│  │ App Gateway (agw-dmz) — WAF_v2  │  snet-appgw 10.1.1.0/24  │
-│  │  listener: HTTP :80 (private)   │                           │
-│  │  backend pool ──► PE IP         │                           │
+│  │ App Gateway (agw-dmz) — WAF_v2   │  snet-appgw 10.1.1.0/24   │
+│  │  listener: HTTP :80 (private)    │                           │
+│  │  backend pool ──► PE IP          │                           │
 │  └──────────┬───────────────────────┘                           │
 │             │                                                   │
 │             ▼                                                   │
 │  ┌───────────────────────────┐                                  │
-│  │ Private Endpoint (pep-svn)│  snet-pe  10.1.2.0/24           │
+│  │ Private Endpoint (pep-svn)│  snet-pe  10.1.2.0/24            │
 │  └──────────┬────────────────┘                                  │
 │             │                                                   │
 └─────────────┼───────────────────────────────────────────────────┘
               │  Azure Private Link (cross-VNet, no peering)
 ┌─────────────┼───────────────────────────────────────────────────┐
-│  vnet-bmw  (10.2.0.0/16)                                       │
+│  vnet-bmw  (10.2.0.0/16)                                        │
 │             │                                                   │
 │  ┌──────────▼───────────────────┐                               │
-│  │ Private Link Service (pls-svn)│  snet-pls  10.2.0.0/24      │
+│  │ Private Link Service (pls-svn)│  snet-pls  10.2.0.0/24       │
 │  └──────────┬───────────────────┘                               │
 │             │                                                   │
 │             ▼                                                   │
 │  ┌────────────────────────────┐                                 │
-│  │ Internal LB (lbi-svn)     │  frontend in snet-pls           │
-│  │  rule: TCP :80 → :80      │                                 │
+│  │ Internal LB (lbi-svn)      │  frontend in snet-pls           │
+│  │  rule: TCP :80 → :80       │                                 │
 │  └──────────┬─────────────────┘                                 │
 │             │                                                   │
 │             ▼                                                   │
 │  ┌──────────────────────┐                                       │
-│  │ VM (vm-svn)          │  snet-svn  10.2.1.0/24               │
+│  │ VM (vm-svn)          │  snet-svn  10.2.1.0/24                │
 │  │ Windows Server 2022  │                                       │
 │  │ SVN listening on :80 │                                       │
 │  └──────────────────────┘                                       │
