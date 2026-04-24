@@ -110,6 +110,6 @@ variable "vm_size" {
 
 variable "svn_port" {
   type        = number
-  description = "Port the SVN service listens on (443 for VisualSVN / HTTPS)."
-  default     = 443
+  description = "Port the SVN service listens on."
+  default     = 80
 }

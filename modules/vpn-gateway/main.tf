@@ -6,6 +6,10 @@ resource "azurerm_public_ip" "vpng" {
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
   tags                = var.tags
+
+  ip_tags = {
+    "FirstPartyUsage" = "/Unprivileged"
+  }
 }
 
 resource "azurerm_virtual_network_gateway" "this" {

@@ -4,7 +4,9 @@ locals {
   frontend_ip_public     = "fe-pip-agw"
   frontend_ip_private    = "fe-private-agw"
   frontend_port_name     = "fp-https"
+  frontend_port_http_name = "port_80"
   listener_name          = "lst-https"
+  listener_http_name     = "lst-http"
   request_routing_name   = "rule-svn"
   probe_name             = "probe-svn"
 }
@@ -16,6 +18,10 @@ resource "azurerm_public_ip" "agw" {
   allocation_method   = "Static"
   sku                 = "Standard"
   tags                = var.tags
+
+  ip_tags = {
+    "FirstPartyUsage" = "/Unprivileged"
+  }
 }
 
 # ── WAF Policy ──────────────────────────────────────────────
@@ -28,7 +34,7 @@ resource "azurerm_web_application_firewall_policy" "this" {
 
   policy_settings {
     enabled                     = true
-    mode                        = "Prevention"
+    mode                        = "Detection"
     request_body_check          = true
     max_request_body_size_in_kb = 128
     file_upload_limit_in_mb     = 100
@@ -81,6 +87,11 @@ resource "azurerm_application_gateway" "this" {
     port = 443
   }
 
+  frontend_port {
+    name = local.frontend_port_http_name
+    port = 80
+  }
+
   # Backend pool points to the Private Endpoint IP
   backend_address_pool {
     name         = local.backend_pool_name
@@ -91,11 +102,10 @@ resource "azurerm_application_gateway" "this" {
     name                                = local.http_setting_name
     cookie_based_affinity               = "Disabled"
     port                                = var.svn_port
-    protocol                            = "Https"
+    protocol                            = "Http"
     request_timeout                     = 60
     probe_name                          = local.probe_name
     host_name                           = "vm-svn"
-    trusted_root_certificate_names      = ["backend-root-cert"]
   }
 
   trusted_root_certificate {
@@ -107,10 +117,14 @@ resource "azurerm_application_gateway" "this" {
     name                = local.probe_name
     host                = "vm-svn"
     path                = "/"
-    protocol            = "Https"
+    protocol            = "Http"
     interval            = 30
     timeout             = 30
     unhealthy_threshold = 3
+
+    match {
+      status_code = ["200-401"]
+    }
   }
 
   # Self-signed cert for demo — use ssl_certificate with Key Vault for production
@@ -128,11 +142,18 @@ resource "azurerm_application_gateway" "this" {
     ssl_certificate_name           = "agw-ssl-cert"
   }
 
+  http_listener {
+    name                           = local.listener_http_name
+    frontend_ip_configuration_name = local.frontend_ip_private
+    frontend_port_name             = local.frontend_port_http_name
+    protocol                       = "Http"
+  }
+
   request_routing_rule {
     name                       = local.request_routing_name
     priority                   = 100
     rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
+    http_listener_name         = local.listener_http_name
     backend_address_pool_name  = local.backend_pool_name
     backend_http_settings_name = local.http_setting_name
   }

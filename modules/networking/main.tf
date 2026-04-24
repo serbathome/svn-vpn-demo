@@ -9,17 +9,19 @@ resource "azurerm_virtual_network" "dmz" {
 }
 
 resource "azurerm_subnet" "gateway" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.dmz.name
-  address_prefixes     = [var.gateway_subnet_prefix]
+  name                           = "GatewaySubnet"
+  resource_group_name            = var.resource_group_name
+  virtual_network_name           = azurerm_virtual_network.dmz.name
+  address_prefixes               = [var.gateway_subnet_prefix]
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "appgw" {
-  name                 = "snet-appgw"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.dmz.name
-  address_prefixes     = [var.appgw_subnet_prefix]
+  name                           = "snet-appgw"
+  resource_group_name            = var.resource_group_name
+  virtual_network_name           = azurerm_virtual_network.dmz.name
+  address_prefixes               = [var.appgw_subnet_prefix]
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "pe" {
@@ -28,6 +30,7 @@ resource "azurerm_subnet" "pe" {
   virtual_network_name              = azurerm_virtual_network.dmz.name
   address_prefixes                  = [var.pe_subnet_prefix]
   private_endpoint_network_policies = "Disabled"
+  default_outbound_access_enabled   = false
 }
 
 # ── BMW VNet ────────────────────────────────────────────────
@@ -46,13 +49,15 @@ resource "azurerm_subnet" "pls" {
   virtual_network_name                          = azurerm_virtual_network.bmw.name
   address_prefixes                              = [var.pls_subnet_prefix]
   private_link_service_network_policies_enabled = false
+  default_outbound_access_enabled               = false
 }
 
 resource "azurerm_subnet" "svn" {
-  name                 = "snet-svn"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.bmw.name
-  address_prefixes     = [var.svn_subnet_prefix]
+  name                           = "snet-svn"
+  resource_group_name            = var.resource_group_name
+  virtual_network_name           = azurerm_virtual_network.bmw.name
+  address_prefixes               = [var.svn_subnet_prefix]
+  default_outbound_access_enabled = false
 }
 
 # ── NSGs ────────────────────────────────────────────────────
@@ -82,7 +87,7 @@ resource "azurerm_network_security_group" "appgw" {
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "443"
+    destination_port_range     = tostring(var.svn_port)
     source_address_prefix      = "VirtualNetwork"
     destination_address_prefix = "*"
   }

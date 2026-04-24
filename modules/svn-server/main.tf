@@ -26,9 +26,11 @@ resource "azurerm_windows_virtual_machine" "svn" {
 
   network_interface_ids = [azurerm_network_interface.svn.id]
 
+  bypass_platform_safety_checks_on_user_schedule_enabled = true
+
   os_disk {
     caching              = "ReadWrite"
-    storage_account_type = "StandardSSD_LRS"
+    storage_account_type = "Standard_LRS"
   }
 
   source_image_reference {
